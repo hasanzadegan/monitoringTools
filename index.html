@@ -1,0 +1,238 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<title>Picasso2 UI Generator</title>
+<head>
+<meta charset="UTF-8">
+<meta company="hamfekrangroup.ir">
+<meta author="shahrokh hassanzadegan">
+<meta email="sh.h.zadegan@gmail.com">
+
+<script src="Scripts/angular.min.js"></script>
+<script src="Scripts/angular-aria.min.js"></script>
+<script src="Scripts/angular-animate.js"></script>
+<script src="Scripts/angular-material.min.js"></script>
+<script src="Scripts/angular-material-icons.min.js"></script>
+<script src="Scripts/angular-route.min.js"></script>
+<script src="Scripts/moment.min.js"></script>
+<script src="Scripts/angular-messages.min.js"></script>
+<script src="scripts/ngMask.min.js"></script>
+
+<script src="scripts/Chart.min.js"></script>
+<script src="scripts/angular-chart.min.js"></script>
+<link href="scripts/angular-material.min.css" rel="stylesheet" />
+<link href="scripts/angular-fonts.css" rel="stylesheet" />
+<link href="scripts/angular-chart.min.css" rel="stylesheet" />
+
+<style>
+body{
+    font-family:'IRANSansWeb';
+    font-size:2vh;
+}
+chart-legend li span 
+{
+	margin:5px !important;
+    padding-left:18px;
+    border-radius:5px;
+    border:solid 1px #aaaaaa;
+}
+
+.panel-heading {
+  font-weight: bold;
+  text-align:center;
+}
+</style>
+
+<script>
+    var app = angular.module("App", ['ngMaterial','chart.js',]);
+	app.config(function (ChartJsProvider) {
+		ChartJsProvider.setOptions({
+			colours: ['#333ffc', '#33ff22', '#F7464A', '#46BFBD', '#FDB45C', '#949FB1', '#4D5360']
+		});
+		ChartJsProvider.setOptions('doughnut', {
+			cutoutPercentage: 60
+		});
+		ChartJsProvider.setOptions('bubble', {  
+		});
+	});
+	
+   app.controller("CRTL", ['$rootScope','$scope', '$http','$q','$filter','$timeout', function ($rootScope,$scope, $http,$q, $filter,$timeout){
+		//$rootScope.path = "http://31.24.238.101/eTaxiChart/api/";
+       //$rootScope.path = "http://172.16.200.75/chart/api/";
+       $rootScope.path = "http://localhost:8089/";
+		$rootScope.getData = function(variable,url){
+			$http({
+				url: url,
+				headers: {'Content-Type': 'application/json'}
+			})
+			.then(function (response) {
+			    $rootScope[variable] = response.data;
+			    $rootScope[variable].options.colours = ['#ffccff', '#33ff22', '#F7464A', '#46BFBD', '#FDB45C', '#949FB1', '#4D5360'];
+			    /*{
+			        responsive: true,
+                    maintainAspectRatio: false, 
+                    percentageInnerCutout: 20, 
+                    pieceLabel: {
+			            render: function (args) {
+			                return args.value;
+			                //return args.label + " \n : "+args.value;             
+			            },
+			            fontColor: '#000',
+			            fontSize: '10',
+			            fontFamily: 'IRANSansWeb',
+			            position: 'inside',
+			            segment: true,
+			            overlap: true,
+			        },
+			        legend: {
+			            display: true, position: "bottom",
+			            labels: {
+			                boxWidth: 12,
+			                fontFamily: "IRANSansWeb",
+			                fontSize: 10,
+			                padding: 10,
+			            }
+			        }
+			    }*/
+			});
+
+		}
+		
+		$rootScope.__timerMax = 60;
+		$rootScope.__timer = 0;
+
+		var timer = function () {
+
+		    if ($rootScope.__timer > $rootScope.__timerMax)
+			    $rootScope.__timer = 0;
+
+			if ($rootScope.__timer == 0) {
+			    $rootScope.getData("chart1", $rootScope.path + "certificateList");
+			    $rootScope.getData("chart2", $rootScope.path + "multiCertificateList");
+			    $rootScope.getData("chart3", $rootScope.path + "certificateList");
+			    $rootScope.getData("chart4", $rootScope.path + "multiCertificateList");
+			    $rootScope.getData("chart5", $rootScope.path + "taxiInformationList");
+			    $rootScope.getData("data1", $rootScope.path + "getFullInformation");
+			}
+
+			$rootScope.__timer += 0.1;
+			$timeout(timer, 100);
+		}
+		timer();
+
+	}]);
+		   
+</script>
+
+</head>
+<body ng-app="App" layout="column" layout-padding layout-wrap>
+	<div ng-controller="CRTL" ng-cloak ng-show="false"></div>
+    <div layout="row" layout-wrap layout-padding flex="100">
+        <div layout="column" flex="25">
+            <md-card flex="100" layout-padding>
+                <div ng-repeat="item in data1.labels" align="center">
+                    <div>{{item}}</div>
+                    <h1>{{data1.data[$index]}}</h1>
+                </div>
+                <md-progress-linear md-mode="determinate" value="{{__timer/__timerMax*100}}" style="width:90%"></md-progress-linear>
+
+
+            </md-card>
+        </div>
+        <div layout="row" flex="75" layout-wrap>
+
+            <div class="panel panel-default" flex="33">
+                <div class="panel-heading">
+                    {{chart1.title}}
+                </div>
+                <div class="panel-body">
+                    <canvas class="chart chart-doughnut chart-xs" chart-data="chart1.data" legend="true"
+                            chart-labels="chart1.labels" chart-options="chart1.options" chart-dataset-override="datasetOverride"></canvas>
+                </div>
+            </div>
+
+
+            <div class="panel panel-default" flex="33">
+                <div class="panel-heading">{{chart2.title}}</div>
+                <div class="panel-body">
+                    <canvas class="chart chart-bar" chart-data="chart2.data" chart-labels="chart2.labels"
+                            chart-series="chart2.series" chart-options="chart2.options" legend="true" chart-dataset-override="datasetOverride"></canvas>
+                </div>
+            </div>
+
+
+            <div class="panel panel-default" flex="33">
+                <div class="panel-heading">
+                    {{chart3.title}}
+                </div>
+                <div class="panel-body">
+                    <canvas class="chart chart-pie chart-xs" chart-data="chart3.data" legend="true"
+                            chart-labels="chart3.labels" chart-options="chart2.options"></canvas>
+                </div>
+            </div>
+
+            <div class="panel panel-default" flex="25">
+                <div class="panel-heading">{{chart4.title}}</div>
+                <div class="panel-body">
+                    <canvas class="chart chart-radar" chart-data="chart4.data" chart-labels="chart4.labels"
+                            chart-series="chart4.series" chart-options="chart4.options" legend="true"></canvas>
+                </div>
+            </div>
+
+            <div class="panel panel-default" flex="25">
+                <div class="panel-heading">{{chart4.title}}</div>
+                <div class="panel-body">
+                    <canvas class="chart chart-radar" chart-data="chart4.data" chart-labels="chart4.labels"
+                            chart-series="chart4.series" chart-options="chart4.options" legend="true"></canvas>
+                </div>
+            </div>
+
+            <div class="panel panel-default" flex="25">
+                <div class="panel-heading">{{chart5.title}}</div>
+                <div class="panel-body">
+                    <canvas class="chart chart-bar" chart-data="chart5.data" chart-labels="chart5.labels"
+                            chart-series="chart5.series" chart-options="chart5.options"></canvas>
+                </div>
+            </div>
+            <div class="panel panel-default" flex="25">
+                <div class="panel-heading">{{chart5.title}}</div>
+                <div class="panel-body">
+                    <canvas class="chart chart-bar" chart-data="chart5.data" chart-labels="chart5.labels"
+                            chart-series="chart5.series" chart-options="chart5.options"></canvas>
+                </div>
+            </div>
+            <div class="panel panel-default" flex="25">
+                <div class="panel-heading">{{chart5.title}}</div>
+                <div class="panel-body">
+                    <canvas class="chart chart-bar" chart-data="chart5.data" chart-labels="chart5.labels"
+                            chart-series="chart5.series" chart-options="chart5.options"></canvas>
+                </div>
+            </div>
+            <div class="panel panel-default" flex="25">
+                <div class="panel-heading">{{chart5.title}}</div>
+                <div class="panel-body">
+                    <canvas class="chart chart-bar" chart-data="chart5.data" chart-labels="chart5.labels"
+                            chart-series="chart5.series" chart-options="chart5.options"></canvas>
+                </div>
+            </div>
+            <div class="panel panel-default" flex="25">
+                <div class="panel-heading">{{chart5.title}}</div>
+                <div class="panel-body">
+                    <canvas class="chart chart-bar" chart-data="chart5.data" chart-labels="chart5.labels"
+                            chart-series="chart5.series" chart-options="chart5.options"></canvas>
+                </div>
+            </div>
+            <div class="panel panel-default" flex="25">
+                <div class="panel-heading">{{chart5.title}}</div>
+                <div class="panel-body">
+                    <canvas class="chart chart-bar" chart-data="chart5.data" chart-labels="chart5.labels"
+                            chart-series="chart5.series" chart-options="chart5.options"></canvas>
+                </div>
+            </div>
+
+
+            </div>
+        </div>
+
+  
+</body>
+</html>
